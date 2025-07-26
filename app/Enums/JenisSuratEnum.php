@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum JenisEnum: string
+enum JenisSuratEnum: string
 {
     case MASUK = 'masuk';
     case KELUAR = 'keluar';
