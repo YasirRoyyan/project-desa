@@ -5,10 +5,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuratController;
 use App\Http\Controllers\PendudukController;
 
-Route::get('/surat/{slug}', [SuratController::class, 'index']);
-Route::post('/surat/{slug}', [SuratController::class, 'store']);
-Route::put('/surat/{id}', [SuratController::class, 'update']);
-Route::delete('/surat/{id}', [SuratController::class, 'destroy']);
+// Route::get('/surat/{slug}', [SuratController::class, 'index']);
+// Route::post('/surat/{slug}', [SuratController::class, 'store']);
+// Route::put('/surat/{id}', [SuratController::class, 'update']);
+// Route::delete('/surat/{id}', [SuratController::class, 'destroy']);
+
+Route::prefix('api')->group(function () {
+        Route::get('surat/{slug}', [SuratController::class, 'getBySlug']);
+        Route::post('surat/{slug}', [SuratController::class, 'store']); 
+        Route::put('surat/{id}', [SuratController::class, 'update']);
+        Route::delete('surat/{id}', [SuratController::class, 'destroy']);
+    });
 
 Route::get('/penduduk', [PendudukController::class, 'index']);
 Route::post('/penduduk', [PendudukController::class, 'store']);

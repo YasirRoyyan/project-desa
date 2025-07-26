@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuratController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -19,6 +20,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('perizinan', function () {
         return Inertia::render('perizinan/index');
     })->name('perizinan.index');
+
+    Route::prefix('api')->group(function () {
+        Route::get('surat/format/{format_id}', [SuratController::class, 'getByFormatId']);
+        Route::get('surat/{slug}', [SuratController::class, 'getBySlug']);
+        Route::post('surat/{slug}', [SuratController::class, 'store']);
+        Route::put('surat/{id}', [SuratController::class, 'update']);
+        Route::delete('surat/{id}', [SuratController::class, 'destroy']);
+    });
     
     Route::get('perizinan-acara', function () {
         return Inertia::render('perizinan-acara/index');

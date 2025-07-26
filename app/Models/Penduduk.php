@@ -83,4 +83,9 @@ class Penduduk extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function surat()
+    {
+        return $this->hasMany(\App\Models\Surat::class, 'penduduk_id');
+    }
 }
