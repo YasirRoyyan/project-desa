@@ -2,64 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FormatSurat;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
+use App\Models\FormatSurat;
 
 class FormatSuratController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index($kategori)
     {
-        //
+        $formats = FormatSurat::with('kategori', 'syarat')
+            ->where('kategori_id', $kategori)
+            // ->orWhereHas('kategori', function ($query) {
+            //     $query->where('nama', 'Perizinan Usaha');
+            // })
+            ->get();
+
+        return response()->json($formats);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+    public function show ($slug) {
+        $format = FormatSurat::with('syarat')
+            ->where('url_surat', $slug)
+            ->first();
+
+        return response()->json([
+            'id' => $format->id,
+            'nama' => $format->nama,
+            'url_surat' => $format->url_surat,
+            'deskripsi' => $format->deskripsi,
+            'form' => $format->form_isian,
+            'syarat' => $format->syarat
+        ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+    public function store (Request $req) {
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(FormatSurat $formatSurat)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(FormatSurat $formatSurat)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, FormatSurat $formatSurat)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(FormatSurat $formatSurat)
-    {
-        //
     }
 }

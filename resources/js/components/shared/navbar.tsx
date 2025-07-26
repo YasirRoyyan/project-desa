@@ -21,11 +21,11 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 const perizinanServices = [
-    { name: "Perizinan Pribadi", href: "/perizinan-pribadi", icon: FileText },
-    { name: "Perizinan Bangunan", href: "/perizinan-bangunan", icon: Building },
-    { name: "Perizinan Acara", href: "/perizinan-acara", icon: Calendar },
-    { name: "Perizinan Usaha", href: "/perizinan-usaha", icon: Briefcase },
-    { name: "Perizinan Pertanian", href: "/perizinan-pertanian", icon: TreePine },
+    { name: "Perizinan Pribadi", href: "/form-pribadi", icon: FileText },
+    { name: "Perizinan Bangunan", href: "/form-bangunan", icon: Building },
+    { name: "Perizinan Acara", href: "/form-acara", icon: Calendar },
+    { name: "Perizinan Usaha", href: "/form-usaha", icon: Briefcase },
+    { name: "Perizinan Pertanian", href: "/form-pertanian", icon: TreePine },
 ];
 
 export function Navbar() {

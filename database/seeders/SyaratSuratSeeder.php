@@ -25,6 +25,17 @@ class SyaratSuratSeeder extends Seeder
             'SK. PNS/KARIP/SK. TNI – POLRI',
             'Surat Keterangan Kematian dari Kepala Desa/Kelurahan',
             'Surat imigrasi / STMD (Surat Tanda Melapor Diri)',
+            'NPWP Perusahaan',
+            'Akta Pendirian Usaha',
+            'Dokumen Kepemilikan Tempat Usaha',
+            'Izin Lingkungan',
+            'Foto Lokasi Usaha',
+            'Surat Pengantar RT/RW',
+            'Fotokopi Paspor',
+            'Surat keterangan kerja/sekolah',
+            'Surat keterangan dari kelurahan asal', 
+            'Bukti kepemilikan/sewa tempat tinggal',
+            'Pas foto 3x4'
         ];
 
         foreach ($syarat as $item) {

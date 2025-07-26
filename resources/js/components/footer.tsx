@@ -1,6 +1,67 @@
-import { Facebook, Instagram, Twitter, Youtube, MapPin, Mail, Phone } from 'lucide-react';
+import { 
+    MapPin,
+    Building,
+    FileText,
+    Briefcase,
+    Calendar,
+    TreePine,
+    Facebook,
+    Instagram,
+    Twitter,
+    Youtube,
+    Phone,
+    Mail,
+} from 'lucide-react';
 
 export function Footer() {
+    const services = [
+    {
+        name: "Perizinan Pribadi",
+        href: "/form-pribadi",
+        icon: FileText,
+        title: "Perizinan Pribadi",
+        description: "Layanan perizinan untuk keperluan pribadi seperti KTP, KK, dan dokumen lainnya",
+        color: "bg-gradient-to-br from-blue-500 to-purple-500",
+        features: ["Proses Cepat", "Online 24/7", "Gratis Konsultasi"]
+    },
+    {
+        name: "Perizinan Bangunan",
+        href: "/form-bangunan",
+        icon: Building,
+        title: "Perizinan Bangunan",
+        description: "Izin mendirikan bangunan (IMB) dan dokumen konstruksi lainnya",
+        color: "bg-gradient-to-br from-orange-500 to-red-500",
+        features: ["Survey Lokasi", "Konsultasi Teknis", "Proses Transparan"]
+    },
+    {
+        name: "Perizinan Acara",
+        href: "/form-acara",
+        icon: Calendar,
+        title: "Perizinan Acara",
+        description: "Perizinan untuk kegiatan, acara, dan event di wilayah desa",
+        color: "bg-gradient-to-br from-pink-500 to-rose-500",
+        features: ["Koordinasi Lengkap", "Dukungan Teknis", "Fleksibel"]
+    },
+    {
+        name: "Perizinan Usaha",
+        href: "/form-usaha",
+        icon: Briefcase,
+        title: "Perizinan Usaha",
+        description: "SIUP, TDP, dan perizinan usaha untuk mengembangkan bisnis Anda",
+        color: "bg-gradient-to-br from-emerald-500 to-teal-500",
+        features: ["Bimbingan Usaha", "Networking", "Monitoring"]
+    },
+    {
+        name: "Perizinan Pertanian",
+        href: "/form-pertanian",
+        icon: TreePine,
+        title: "Perizinan Pertanian",
+        description: "Izin usaha pertanian, peternakan, dan agribisnis",
+        color: "bg-gradient-to-br from-cyan-500 to-blue-500",
+        features: ["Konsultasi Ahli", "Subsidi Program", "Pelatihan"]
+    }
+    ];
+
     return (
         <footer className="bg-white text-gray-900">
             <div className="max-w-7xl mx-auto px-6 py-16">
@@ -58,36 +119,16 @@ export function Footer() {
                     <div>
                         <h4 className="text-lg font-bold mb-6 text-gray-900">Layanan Digital</h4>
                         <ul className="space-y-3">
-                            <li>
-                                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center group">
-                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3 group-hover:bg-gray-900 transition-colors"></span>
-                                    Perizinan Usaha
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center group">
-                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3 group-hover:bg-gray-900 transition-colors"></span>
-                                    Perizinan Acara
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center group">
-                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3 group-hover:bg-gray-900 transition-colors"></span>
-                                    Perizinan Bangunan
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center group">
-                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3 group-hover:bg-gray-900 transition-colors"></span>
-                                    Perizinan Pertanian
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center group">
-                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3 group-hover:bg-gray-900 transition-colors"></span>
-                                    Perizinan Pribadi
-                                </a>
-                            </li>
+                            {
+                                services.map((service) => (
+                                    <li>
+                                        <a href={service.href} className="text-gray-600 hover:text-gray-900 transition-colors flex items-center group">
+                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3 group-hover:bg-gray-900 transition-colors"></span>
+                                            {service.name}
+                                        </a>
+                                    </li>
+                                ))
+                            }
                         </ul>
                     </div>
 

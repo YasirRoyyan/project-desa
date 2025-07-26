@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             KategoriSuratSeeder::class,
             SyaratSuratSeeder::class,
             FormatSuratSeeder::class,
+            SyaratFormatSuratSeeder::class,
         ]);
     }
 }

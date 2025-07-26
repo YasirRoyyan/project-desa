@@ -5,15 +5,15 @@ import { Navbar } from '@/components/shared/navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-import { Building2, FileText, ShoppingBag, Store, Briefcase, ArrowRight } from 'lucide-react';
+import { FileText, Home, Plane, User, FileCheck, ArrowRight } from 'lucide-react';
 
-const icons = [Store, FileText, Building2, ShoppingBag, Briefcase];
+const icons = [FileText, Home, User, Plane, FileCheck];
 const colors = [
-  'bg-gradient-to-br from-blue-500 to-purple-500',    // SIUP
-  'bg-gradient-to-br from-orange-500 to-red-500',     // NIB
-  'bg-gradient-to-br from-pink-500 to-rose-500',      // SITU
-  'bg-gradient-to-br from-emerald-500 to-teal-500',   // SKU
-  'bg-gradient-to-br from-cyan-500 to-blue-500',      // IUMK
+  'bg-gradient-to-br from-blue-500 to-purple-500',    
+  'bg-gradient-to-br from-orange-500 to-red-500',     
+  'bg-gradient-to-br from-pink-500 to-rose-500',      
+  'bg-gradient-to-br from-emerald-500 to-teal-500',   
+  'bg-gradient-to-br from-cyan-500 to-blue-500',      
 ];
 
 interface Syarat {
@@ -30,14 +30,14 @@ interface FormatSurat {
   syarat: Syarat[];
 }
 
-export default function FormUsaha() {
+export default function FormPribadi() {
     const API_URL = import.meta.env.VITE_API_URL;
     
     const [data, setData] = useState([]);
     
     const fetchData = async () => {
         try {
-            const response = await axios.get(`${API_URL}/format-surat/1`);
+            const response = await axios.get(`${API_URL}/format-surat/4`);
             setData(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -50,14 +50,14 @@ export default function FormUsaha() {
 
     return (
         <>
-            <Head title="Form Perizinan Usaha - Desa Drawati" />
+            <Head title="Form Perizinan Pribadi - Desa Drawati" />
 
             <Navbar />
             {/* Section: Perizinan Usaha Modern */}
             <section className="bg-white w-full pt-32 pb-8 md:pt-40 md:pb-12 border-b">
                 <div className="max-w-4xl mx-auto px-4 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold text-[#1E4359] mb-2">Perizinan Usaha Modern</h2>
-                    <p className="text-gray-600 text-lg max-w-2xl mx-auto">Layanan perizinan usaha digital yang mudah, cepat, dan transparan untuk mendukung pelaku usaha di Desa Drawati.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-[#1E4359] mb-2">Perizinan Pribadi</h2>
+                    <p className="text-gray-600 text-lg max-w-2xl mx-auto">Layanan perizinan pribadi digital yang mudah, cepat, dan transparan untuk mendukung pelaku pribadi di Desa Drawati.</p>
                 </div>
             </section>
             <div className="min-h-screen">
@@ -71,10 +71,10 @@ export default function FormUsaha() {
                                     Pilih Jenis Perizinan
                                 </Badge>
                                 <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                                    Form Perizinan Usaha
+                                    Form Perizinan Pribadi
                                 </h1>
                                 <p className="mt-6 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-                                    Pilih jenis perizinan usaha yang sesuai dengan kebutuhan Anda. 
+                                    Pilih jenis perizinan pribadi yang sesuai dengan kebutuhan Anda. 
                                     Setiap jenis perizinan memiliki persyaratan dan ketentuan yang berbeda.
                                 </p>
                             </div>
@@ -97,7 +97,7 @@ export default function FormUsaha() {
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.3 }}
                                         >
-                                            <Link href={`/form-usaha/form/${row.url_surat}`}>
+                                            <Link href={`/form-pribadi/form/${row.url_surat}`}>
                                                 <Card className="h-full hover:shadow-lg transition-all duration-300 cursor-pointer group">
                                                     <CardHeader className="space-y-4">
                                                         <div className={`${colors[index % colors.length]} w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>

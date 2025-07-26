@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('syarat_format_surats', function (Blueprint $table) {
+        Schema::create('syarat_format_surat', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('format_id')->nullable()->index();
             $table->unsignedBigInteger('syarat_id')->nullable()->index();

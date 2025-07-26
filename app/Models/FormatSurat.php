@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-use App\Models\Syarat;
+use App\Models\SyaratSurat;
+use App\Models\KategoriSurat;
 
 class FormatSurat extends Model
 {
@@ -23,6 +24,11 @@ class FormatSurat extends Model
 
     public function syarat()
     {
-        return $this->belongsToMany(Syarat::class, 'syarat_format_surat', 'format_id', 'syarat_id');
+        return $this->belongsToMany(SyaratSurat::class, 'syarat_format_surat', 'format_id', 'syarat_id');
+    }
+
+    public function kategori()
+    {
+        return $this->belongsTo(KategoriSurat::class);
     }
 }

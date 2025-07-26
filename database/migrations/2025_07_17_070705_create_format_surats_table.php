@@ -16,6 +16,7 @@ return new class extends Migration
             // $table->unsignedBigInteger('config_id')->nullable()->index();
 
             $table->string('nama');
+            $table->string('deskripsi')->nullable();
             $table->unsignedBigInteger('kategori_id')->nullable();
             $table->string('url_surat')->index();
             $table->string('kode_surat', 10)->nullable();

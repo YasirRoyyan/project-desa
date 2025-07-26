@@ -40,50 +40,52 @@ export default function Landing() {
         document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const perizinanServices = [
-        { name: "Perizinan Pribadi", href: "/login", icon: FileText },
-        { name: "Perizinan Bangunan", href: "/login", icon: Building },
-        { name: "Perizinan Acara", href: "/login", icon: Calendar },
-        { name: "Perizinan Usaha", href: "/login", icon: Briefcase },
-        { name: "Perizinan Pertanian", href: "/login", icon: TreePine },
-    ];
-
     const services = [
-        {
-            icon: FileText,
-            title: "Perizinan Pribadi", 
-            description: "Layanan perizinan untuk keperluan pribadi seperti KTP, KK, dan dokumen lainnya",
-            color: "bg-gradient-to-br from-blue-500 to-purple-500",
-            features: ["Proses Cepat", "Online 24/7", "Gratis Konsultasi"]
-        },
-        {
-            icon: Building,
-            title: "Perizinan Bangunan",
-            description: "Izin mendirikan bangunan (IMB) dan dokumen konstruksi lainnya",
-            color: "bg-gradient-to-br from-orange-500 to-red-500", 
-            features: ["Survey Lokasi", "Konsultasi Teknis", "Proses Transparan"]
-        },
-        {
-            icon: Calendar,
-            title: "Perizinan Acara",
-            description: "Perizinan untuk kegiatan, acara, dan event di wilayah desa",
-            color: "bg-gradient-to-br from-pink-500 to-rose-500",
-            features: ["Koordinasi Lengkap", "Dukungan Teknis", "Fleksibel"]
-        },
-        {
-            icon: Briefcase,
-            title: "Perizinan Usaha",
-            description: "SIUP, TDP, dan perizinan usaha untuk mengembangkan bisnis Anda",
-            color: "bg-gradient-to-br from-emerald-500 to-teal-500",
-            features: ["Bimbingan Usaha", "Networking", "Monitoring"]
-        },
-        {
-            icon: TreePine,
-            title: "Perizinan Pertanian",
-            description: "Izin usaha pertanian, peternakan, dan agribisnis",
-            color: "bg-gradient-to-br from-cyan-500 to-blue-500",
-            features: ["Konsultasi Ahli", "Subsidi Program", "Pelatihan"]
-        }
+    {
+        name: "Perizinan Pribadi",
+        href: "/form-pribadi",
+        icon: FileText,
+        title: "Perizinan Pribadi",
+        description: "Layanan perizinan untuk keperluan pribadi seperti KTP, KK, dan dokumen lainnya",
+        color: "bg-gradient-to-br from-blue-500 to-purple-500",
+        features: ["Proses Cepat", "Online 24/7", "Gratis Konsultasi"]
+    },
+    {
+        name: "Perizinan Bangunan",
+        href: "/form-bangunan",
+        icon: Building,
+        title: "Perizinan Bangunan",
+        description: "Izin mendirikan bangunan (IMB) dan dokumen konstruksi lainnya",
+        color: "bg-gradient-to-br from-orange-500 to-red-500",
+        features: ["Survey Lokasi", "Konsultasi Teknis", "Proses Transparan"]
+    },
+    {
+        name: "Perizinan Acara",
+        href: "/form-acara",
+        icon: Calendar,
+        title: "Perizinan Acara",
+        description: "Perizinan untuk kegiatan, acara, dan event di wilayah desa",
+        color: "bg-gradient-to-br from-pink-500 to-rose-500",
+        features: ["Koordinasi Lengkap", "Dukungan Teknis", "Fleksibel"]
+    },
+    {
+        name: "Perizinan Usaha",
+        href: "/form-usaha",
+        icon: Briefcase,
+        title: "Perizinan Usaha",
+        description: "SIUP, TDP, dan perizinan usaha untuk mengembangkan bisnis Anda",
+        color: "bg-gradient-to-br from-emerald-500 to-teal-500",
+        features: ["Bimbingan Usaha", "Networking", "Monitoring"]
+    },
+    {
+        name: "Perizinan Pertanian",
+        href: "/form-pertanian",
+        icon: TreePine,
+        title: "Perizinan Pertanian",
+        description: "Izin usaha pertanian, peternakan, dan agribisnis",
+        color: "bg-gradient-to-br from-cyan-500 to-blue-500",
+        features: ["Konsultasi Ahli", "Subsidi Program", "Pelatihan"]
+    }
     ];
 
     const stats = [
@@ -164,7 +166,7 @@ export default function Landing() {
                                         </button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-lg rounded-lg p-2">
-                                        {perizinanServices.map((service, index) => (
+                                        {services.map((service, index) => (
                                             <DropdownMenuItem key={index} asChild>
                                                 <Link 
                                                     href={service.href}
@@ -227,7 +229,7 @@ export default function Landing() {
                         }} />
                     </div>
 
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <div className="mt-7 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                         <div className="max-w-4xl mx-auto">
                             <FadeInView direction="up" delay={0.2}>
                                 <motion.div
@@ -235,9 +237,6 @@ export default function Landing() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: 0.2 }}
                                 >
-                                    <Badge className="mb-6 bg-[#1E4359]/10 text-[#1E4359] border-[#1E4359]/20 hover:bg-[#1E4359]/15">
-                                        🚀 Pelayanan Digital Terdepan
-                                    </Badge>
                                 </motion.div>
                             </FadeInView>
 
@@ -379,25 +378,15 @@ export default function Landing() {
                                                         </div>
                                                     ))}
                                                 </div>
-                                                {service.title === 'Perizinan Usaha' ? (
-                                                    <Link href="/form-usaha">
-                                                        <Button 
-                                                            className="w-full bg-gradient-to-r from-[#1E4359] to-[#2A5B73] hover:from-[#2A5B73] hover:to-[#1E4359]"
-                                                            size="sm"
-                                                        >
-                                                            Mulai Sekarang
-                                                            <ChevronRight className="ml-2 h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                ) : (
-                                                    <Button 
-                                                        className="w-full bg-gradient-to-r from-[#1E4359] to-[#2A5B73] hover:from-[#2A5B73] hover:to-[#1E4359]"
+                                                <Link href={service.href}>
+                                                    <Button
+                                                        className="w-full bg-gradient-to-r from-[#1E4359] to-[#2A5B73] hover:from-[#2A5B73] hover:to-[#1E4359] hover:cursor-pointer"
                                                         size="sm"
                                                     >
                                                         Mulai Sekarang
                                                         <ChevronRight className="ml-2 h-4 w-4" />
                                                     </Button>
-                                                )}
+                                                </Link>
                                             </CardContent>
                                         </Card>
                                     </motion.div>
@@ -417,9 +406,9 @@ export default function Landing() {
                                         Keunggulan Kami
                                     </Badge>
                                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                                        Mengapa Memilih 
+                                         Kemudahan Layanan untuk Semua Warga 
                                         <span className="block bg-gradient-to-r from-[#1E4359] to-[#2A5B73] bg-clip-text text-transparent">
-                                            Desa Drawati?
+                                        Semua Warga 
                                         </span>
                                     </h2>
                                     <p className="text-xl text-gray-600 mb-8 leading-relaxed">
@@ -552,9 +541,7 @@ export default function Landing() {
                                                         </span>
                                                     </h3>
                                                     <p className="text-gray-600 text-lg leading-relaxed">
-                                                        Menjadi desa digital yang mandiri, maju, dan sejahtera dengan 
-                                                        pelayanan prima berbasis teknologi modern yang dapat diakses 
-                                                        oleh seluruh masyarakat.
+                                                    Mewujudkan masyarakat yang adil dan makmur, sehat dan sejahtera serta bertaqwa kepada Tuhan Yang Maha Esa, berahlak mulia yang berwawasan ilmu pengetahuan dan tekhnologi tinggi dan cinta terhadap lingkungan sekitarnya
                                                     </p>
                                                 </div>
                                             </div>
@@ -578,11 +565,15 @@ export default function Landing() {
                                                             Misi Kami
                                                         </span>
                                                     </h3>
-                                                    <p className="text-gray-600 text-lg leading-relaxed">
-                                                        Memberikan pelayanan administrasi yang cepat, transparan, dan mudah diakses 
-                                                        oleh seluruh masyarakat melalui platform digital yang terintegrasi dengan 
-                                                        teknologi terdepan.
-                                                    </p>
+                                                    <ol className="text-gray-600 text-lg leading-relaxed list-decimal pl-6">
+  <li>Meningkatkan Bidang Pembangunan Infrastruktur.</li>
+  <li>Meningkatkan Bidang Kesejahteraan Masyarakat.</li>
+  <li>Meningkatkan Bidang Religi atau Keagamaan.</li>
+  <li>Meningkatkan Bidang Pemerintahan.</li>
+  <li>Meningkatkan Bidang Pendidikan.</li>
+  <li>Meningkatkan Bidang Kesehatan.</li>
+  <li>Meningkatkan Bidang Ekonomi.</li>
+</ol>   
                                                 </div>
                                             </div>
                                         </Card>
