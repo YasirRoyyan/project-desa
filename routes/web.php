@@ -23,7 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('api')->group(function () {
         Route::get('surat/format/{format_id}', [SuratController::class, 'getByFormatId']);
-        Route::get('surat/{slug}', [SuratController::class, 'getBySlug']);
+        // Route::get('surat/{slug}', [SuratController::class, 'getBySlug']);
         Route::post('surat/{slug}', [SuratController::class, 'store']);
         Route::put('surat/{id}', [SuratController::class, 'update']);
         Route::delete('surat/{id}', [SuratController::class, 'destroy']);

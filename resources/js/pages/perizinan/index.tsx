@@ -80,6 +80,7 @@ export default function PerizinanUsaha() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const statusOptions = ['diproses', 'disetujui', 'ditolak', 'dicetak'];
 
     const { deleteSuccess, deleteError } = useCrudToast();
 
@@ -169,7 +170,7 @@ export default function PerizinanUsaha() {
             name: 'No. Surat',
             selector: (row: SuratItem) => row.nomor_surat || '-',
             sortable: true,
-            width: '120px',
+            width: '150px',
         },
         {
             name: 'Nama Pemohon',
@@ -186,24 +187,93 @@ export default function PerizinanUsaha() {
             name: 'Status',
             selector: (row: SuratItem) => row.status,
             sortable: true,
-            width: '100px',
+            width: '150px',
             cell: (row: SuratItem) => {
-                const getVariant = (status: string) => {
+                const [isEditing, setIsEditing] = useState(false);
+                const [currentStatus, setCurrentStatus] = useState<'diproses' | 'disetujui' | 'ditolak' | 'dicetak'>(row.status);
+                const [loading, setLoading] = useState(false);
+
+                const getVariantColor = (status: string) => {
                     switch (status) {
                         case 'diproses':
-                            return 'warning';
+                            return 'orange';
                         case 'disetujui':
-                            return 'success';
+                            return 'green';
                         case 'ditolak':
-                            return 'destructive';
+                            return 'red';
                         case 'dicetak':
-                            return 'secondary'; // Changed from 'info' to 'secondary'
+                            return 'gray';
                         default:
-                            return 'secondary';
+                            return 'black';
                     }
                 };
 
-                return <Badge variant={getVariant(row.status)}>{row.status.toUpperCase()}</Badge>;
+                const updateStatus = async (newStatus: string) => {
+                    try {
+                        setLoading(true);
+                        const response = await fetch(`/api/surat/${row.id}/status`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Accept: 'application/json',
+                            },
+                            body: JSON.stringify({ status: newStatus }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Gagal memperbarui status');
+                        }
+
+                        const result = await response.json();
+                        setCurrentStatus((result.status || newStatus) as 'diproses' | 'disetujui' | 'ditolak' | 'dicetak');
+                    } catch (error) {
+                        alert('Gagal memperbarui status.');
+                        console.error(error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const newStatus = e.target.value;
+                    setCurrentStatus(newStatus as 'diproses' | 'disetujui' | 'ditolak' | 'dicetak');
+                    setIsEditing(false);
+                    await updateStatus(newStatus);
+                };
+
+                return isEditing ? (
+                    <select
+                        value={currentStatus}
+                        onChange={handleChange}
+                        onBlur={() => setIsEditing(false)}
+                        style={{ padding: '4px', borderRadius: '4px' }}
+                        autoFocus
+                    >
+                        {statusOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option.toUpperCase()}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <span
+                        onClick={() => !loading && setIsEditing(true)}
+                        style={{
+                            cursor: loading ? 'wait' : 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            backgroundColor: getVariantColor(currentStatus),
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            display: 'inline-block',
+                            opacity: loading ? 0.6 : 1,
+                        }}
+                        title={loading ? 'Sedang menyimpan...' : 'Klik untuk ubah status'}
+                    >
+                        {currentStatus.toUpperCase()}
+                    </span>
+                );
             },
         },
         {
@@ -219,9 +289,6 @@ export default function PerizinanUsaha() {
                 <div className="flex items-center gap-2">
                     <button className="px-1 text-sm text-blue-500 hover:underline" onClick={() => handleView(row)} title="Lihat detail">
                         Lihat
-                    </button>
-                    <button className="px-1 text-sm text-yellow-500 hover:underline" onClick={() => handleEdit(row)} title="Edit data">
-                        Edit
                     </button>
                     <button className="px-1 text-sm text-red-500 hover:underline" onClick={() => handleDelete(row)} title="Hapus data">
                         Hapus
@@ -330,7 +397,7 @@ export default function PerizinanUsaha() {
 
                             <TabsContent value={activeTab} className="mt-2">
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="mb-2 flex items-center justify-between">
                                         <div>
                                             <h3 className="text-lg font-semibold">{permitTypes.find((p) => p.key === activeTab)?.label}</h3>
                                             <p className="text-sm text-muted-foreground">

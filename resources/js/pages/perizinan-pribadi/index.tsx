@@ -1,439 +1,457 @@
-import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PersonalPermitTable } from '@/components/personal-permit-table';
-import { PersonalPermitDetailModal } from '@/components/personal-permit-detail-modal';
-import { PersonalPermitEditModal } from '@/components/personal-permit-edit-modal';
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
-import { useCrudToast, usePermitToast } from '@/hooks/useToast';
-import { 
-  pengantarSKCKData as originalPengantarSKCKData, 
-  keteranganDomisiliData as originalKeteranganDomisiliData, 
-  izinTinggalPendatangData as originalIzinTinggalPendatangData,
-  izinKeluarNegeriData as originalIzinKeluarNegeriData,
-  keteranganTidakBekerjaData as originalKeteranganTidakBekerjaData,
-  SuratPengantarSKCK,
-  SuratKeteranganDomisili,
-  SuratIzinTinggalPendatang,
-  SuratIzinKeluarNegeri,
-  SuratKeteranganTidakBekerja
-} from '@/data/personal-permits';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCrudToast } from '@/hooks/useToast';
+import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { 
-  FileText, 
-  Home, 
-  UserPlus, 
-  Plane, 
-  UserX,
-  ListFilter
-} from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { FileText, Home, ListFilter, Plane, UserPlus, UserX } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import DataTable from 'react-data-table-component';
+
+// Define interfaces for your data
+interface SuratItem {
+    id: number;
+    status: 'diproses' | 'disetujui' | 'ditolak' | 'dicetak';
+    penduduk_id?: number;
+    nomor_surat?: string;
+    nama_penduduk?: string; // Tambahan untuk nama dari relasi penduduk
+    form: {
+        nama?: string;
+        nama_usaha?: string;
+        [key: string]: any;
+    };
+    format: {
+        url_surat?: string;
+        name?: string;
+        id: number;
+    };
+    penduduk?: {
+        id: number;
+        nama: string;
+        [key: string]: any;
+    };
+    created_at: string;
+    updated_at: string;
+}
+
+interface StatusCounts {
+    total: number;
+    diproses: number;
+    disetujui: number;
+    ditolak: number;
+}
+
+interface ApiResponse {
+    message: string;
+    total: number;
+    diproses: number;
+    disetujui: number;
+    ditolak: number;
+    data: SuratItem[];
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-  },
-  {
-    title: 'Manajemen Perizinan Pribadi',
-    href: '/perizinan-pribadi',
-  },
+    {
+        title: 'Dashboard',
+        href: '/dashboard',
+    },
+    {
+        title: 'Manajemen Perizinan Pribadi',
+        href: '/perizinan-pribadi',
+    },
 ];
 
-const permitIcons = {
-  'pengantar-skck': FileText,
-  'keterangan-domisili': Home,
-  'izin-tinggal-pendatang': UserPlus,
-  'izin-keluar-negeri': Plane,
-  'keterangan-tidak-bekerja': UserX,
-};
+const permitTypes = [
+    { key: 'pengantarskck', label: 'Surat SKCK', icon: FileText },
+    { key: 'keterangandomisili', label: 'Surat Keterangan Domisili', icon: Home },
+    { key: 'izintinggalpendatang', label: 'Surat Izin Tinggal Pendatang', icon: UserPlus },
+    { key: 'izinkeluarnegeri', label: 'Surat Izin Keluar Negeri', icon: Plane },
+    { key: 'keterangantidakbekerja', label: 'Surat Keterangan Tidak Bekerja', icon: UserX },
+];
 
 export default function PerizinanPribadi() {
-  const [activeTab, setActiveTab] = useState('pengantar-skck');
-  const [selectedData, setSelectedData] = useState<SuratPengantarSKCK | SuratKeteranganDomisili | SuratIzinTinggalPendatang | SuratIzinKeluarNegeri | SuratKeteranganTidakBekerja | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [dataToDelete, setDataToDelete] = useState<SuratPengantarSKCK | SuratKeteranganDomisili | SuratIzinTinggalPendatang | SuratIzinKeluarNegeri | SuratKeteranganTidakBekerja | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  
-  // Toast hooks
-  const { updateSuccess, deleteSuccess, deleteError } = useCrudToast();
-  const { approveSuccess } = usePermitToast();
-  
-  // State management for each data type
-  const [pengantarSKCKData, setPengantarSKCKData] = useState<SuratPengantarSKCK[]>(originalPengantarSKCKData);
-  const [keteranganDomisiliData, setKeteranganDomisiliData] = useState<SuratKeteranganDomisili[]>(originalKeteranganDomisiliData);
-  const [izinTinggalPendatangData, setIzinTinggalPendatangData] = useState<SuratIzinTinggalPendatang[]>(originalIzinTinggalPendatangData);
-  const [izinKeluarNegeriData, setIzinKeluarNegeriData] = useState<SuratIzinKeluarNegeri[]>(originalIzinKeluarNegeriData);
-  const [keteranganTidakBekerjaData, setKeteranganTidakBekerjaData] = useState<SuratKeteranganTidakBekerja[]>(originalKeteranganTidakBekerjaData);
-  
-  // Create a personal permits array that always uses the latest state
-  const personalPermitTypes = [
-    { key: 'pengantar-skck', label: 'Surat Pengantar SKCK', data: pengantarSKCKData },
-    { key: 'keterangan-domisili', label: 'Surat Keterangan Domisili', data: keteranganDomisiliData },
-    { key: 'izin-tinggal-pendatang', label: 'Surat Izin Tinggal Pendatang', data: izinTinggalPendatangData },
-    { key: 'izin-keluar-negeri', label: 'Surat Izin Keluar Negeri (Informal)', data: izinKeluarNegeriData },
-    { key: 'keterangan-tidak-bekerja', label: 'Surat Keterangan Tidak Bekerja', data: keteranganTidakBekerjaData },
-  ];
+    const [activeTab, setActiveTab] = useState('pengantarskck');
+    const [tabData, setTabData] = useState<SuratItem[]>([]);
+    const [statusCountsState, setStatusCountsState] = useState<StatusCounts>({
+        total: 0,
+        diproses: 0,
+        disetujui: 0,
+        ditolak: 0,
+    });
+    const [loading, setLoading] = useState(false);
+    const [selectedData, setSelectedData] = useState<SuratItem | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const statusOptions = ['diproses', 'disetujui', 'ditolak', 'dicetak'];
 
-  const handleView = (data: SuratPengantarSKCK | SuratKeteranganDomisili | SuratIzinTinggalPendatang | SuratIzinKeluarNegeri | SuratKeteranganTidakBekerja) => {
-    setSelectedData(data);
-    setIsDetailModalOpen(true);
-  };
+    const { deleteSuccess, deleteError } = useCrudToast();
 
-  const handleEdit = (data: SuratPengantarSKCK | SuratKeteranganDomisili | SuratIzinTinggalPendatang | SuratIzinKeluarNegeri | SuratKeteranganTidakBekerja) => {
-    setSelectedData(data);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDelete = (data: SuratPengantarSKCK | SuratKeteranganDomisili | SuratIzinTinggalPendatang | SuratIzinKeluarNegeri | SuratKeteranganTidakBekerja) => {
-    setDataToDelete(data);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleSaveEdit = (updatedData: SuratPengantarSKCK | SuratKeteranganDomisili | SuratIzinTinggalPendatang | SuratIzinKeluarNegeri | SuratKeteranganTidakBekerja) => {
-    // Update the data in local state based on type
-    switch (activeTab) {
-      case 'pengantar-skck': {
-        const newData = pengantarSKCKData.map(item => 
-          item.id === updatedData.id ? updatedData as SuratPengantarSKCK : item
-        );
-        setPengantarSKCKData(newData);
-        break;
-      }
-      case 'keterangan-domisili': {
-        const newData = keteranganDomisiliData.map(item => 
-          item.id === updatedData.id ? updatedData as SuratKeteranganDomisili : item
-        );
-        setKeteranganDomisiliData(newData);
-        break;
-      }
-      case 'izin-tinggal-pendatang': {
-        const newData = izinTinggalPendatangData.map(item => 
-          item.id === updatedData.id ? updatedData as SuratIzinTinggalPendatang : item
-        );
-        setIzinTinggalPendatangData(newData);
-        break;
-      }
-      case 'izin-keluar-negeri': {
-        const newData = izinKeluarNegeriData.map(item => 
-          item.id === updatedData.id ? updatedData as SuratIzinKeluarNegeri : item
-        );
-        setIzinKeluarNegeriData(newData);
-        break;
-      }
-      case 'keterangan-tidak-bekerja': {
-        const newData = keteranganTidakBekerjaData.map(item => 
-          item.id === updatedData.id ? updatedData as SuratKeteranganTidakBekerja : item
-        );
-        setKeteranganTidakBekerjaData(newData);
-        break;
-      }
-    }
-    
-    setIsEditModalOpen(false);
-    updateSuccess('Data perizinan pribadi');
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!dataToDelete) return;
-    
-    setIsDeleting(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Delete the data from the state based on type
-      switch (activeTab) {
-        case 'pengantar-skck': {
-          const newData = pengantarSKCKData.filter(item => item.id !== dataToDelete.id);
-          setPengantarSKCKData(newData);
-          break;
-        }
-        case 'keterangan-domisili': {
-          const newData = keteranganDomisiliData.filter(item => item.id !== dataToDelete.id);
-          setKeteranganDomisiliData(newData);
-          break;
-        }
-        case 'izin-tinggal-pendatang': {
-          const newData = izinTinggalPendatangData.filter(item => item.id !== dataToDelete.id);
-          setIzinTinggalPendatangData(newData);
-          break;
-        }
-        case 'izin-keluar-negeri': {
-          const newData = izinKeluarNegeriData.filter(item => item.id !== dataToDelete.id);
-          setIzinKeluarNegeriData(newData);
-          break;
-        }
-        case 'keterangan-tidak-bekerja': {
-          const newData = keteranganTidakBekerjaData.filter(item => item.id !== dataToDelete.id);
-          setKeteranganTidakBekerjaData(newData);
-          break;
-        }
-      }
-      
-      setIsDeleteModalOpen(false);
-      setDataToDelete(null);
-      deleteSuccess('Data perizinan pribadi');
-    } catch {
-      deleteError('Terjadi kesalahan saat menghapus data perizinan pribadi');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const getDeleteModalContent = () => {
-    if (!dataToDelete) return { title: '', description: '' };
-    
-    let title = '';
-    let description = '';
-    
-    switch (activeTab) {
-      case 'pengantar-skck': {
-        const pengantarData = dataToDelete as SuratPengantarSKCK;
-        title = 'Hapus Surat Pengantar SKCK';
-        description = `Apakah Anda yakin ingin menghapus surat pengantar SKCK untuk ${pengantarData.nama_pemohon}? Tindakan ini tidak dapat dibatalkan.`;
-        break;
-      }
-      case 'keterangan-domisili': {
-        const domisiliData = dataToDelete as SuratKeteranganDomisili;
-        title = 'Hapus Surat Keterangan Domisili';
-        description = `Apakah Anda yakin ingin menghapus surat keterangan domisili untuk ${domisiliData.nama_warga}? Tindakan ini tidak dapat dibatalkan.`;
-        break;
-      }
-      case 'izin-tinggal-pendatang': {
-        const pendatangData = dataToDelete as SuratIzinTinggalPendatang;
-        title = 'Hapus Surat Izin Tinggal Pendatang';
-        description = `Apakah Anda yakin ingin menghapus surat izin tinggal pendatang untuk ${pendatangData.nama_pendatang}? Tindakan ini tidak dapat dibatalkan.`;
-        break;
-      }
-      case 'izin-keluar-negeri': {
-        const keluarNegeriData = dataToDelete as SuratIzinKeluarNegeri;
-        title = 'Hapus Surat Izin Keluar Negeri';
-        description = `Apakah Anda yakin ingin menghapus surat izin keluar negeri untuk ${keluarNegeriData.nama_pemohon}? Tindakan ini tidak dapat dibatalkan.`;
-        break;
-      }
-      case 'keterangan-tidak-bekerja': {
-        const tidakBekerjaData = dataToDelete as SuratKeteranganTidakBekerja;
-        title = 'Hapus Surat Keterangan Tidak Bekerja';
-        description = `Apakah Anda yakin ingin menghapus surat keterangan tidak bekerja untuk ${tidakBekerjaData.nama_pemohon}? Tindakan ini tidak dapat dibatalkan.`;
-        break;
-      }
-      default: {
-        title = 'Hapus Data';
-        description = 'Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.';
-      }
-    }
-    
-    return { title, description };
-  };
-
-  const getDataForTab = (tabKey: string) => {
-    switch (tabKey) {
-      case 'pengantar-skck':
-        return pengantarSKCKData;
-      case 'keterangan-domisili':
-        return keteranganDomisiliData;
-      case 'izin-tinggal-pendatang':
-        return izinTinggalPendatangData;
-      case 'izin-keluar-negeri':
-        return izinKeluarNegeriData;
-      case 'keterangan-tidak-bekerja':
-        return keteranganTidakBekerjaData;
-      default:
-        return [];
-    }
-  };
-
-  const getStatusCounts = (data: Array<{ status: string }>) => {
-    const counts = {
-      total: data.length,
-      diproses: data.filter(item => item.status === 'Diproses').length,
-      disetujui: data.filter(item => item.status === 'Disetujui').length,
-      ditolak: data.filter(item => item.status === 'Ditolak').length,
+    // Mapping slug ke format_id sesuai database Anda
+    const formatIdMap: Record<string, number> = {
+        pengantarskck: 23,
+        keterangandomisili: 24,
+        izintinggalpendatang: 25,
+        izinkeluarnegeri: 26,
+        keterangantidakbekerja: 27,
     };
-    return counts;
-  };
 
-  const currentTabData = getDataForTab(activeTab);
-  const statusCounts = getStatusCounts(currentTabData);
+    // Fetch data for active tab using format_id
+    const fetchData = async (tabKey: string) => {
+        setLoading(true);
+        try {
+            const formatId = formatIdMap[tabKey];
+            if (!formatId) {
+                throw new Error(`Format ID not found for tab: ${tabKey}`);
+            }
 
-  return (
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Manajemen Perizinan Pribadi" />
-      
-      <div className="container mx-auto py-8 px-6">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Manajemen Perizinan Pribadi
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Kelola semua jenis perizinan pribadi dalam satu dashboard
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
-              <ListFilter className="h-3.5 w-3.5" />
-              <span>Perizinan Aktif</span>
-            </Badge>
-          </div>
-        </div>
+            const response = await axios.get<ApiResponse>(`/api/surat/format/${formatId}`);
+            const { data, total, diproses, disetujui, ditolak } = response.data;
 
-        {/* Statistics Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium">Total Pengajuan</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statusCounts.total}</div>
-              <p className="text-xs text-muted-foreground">
-                Semua pengajuan perizinan
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium">Diproses</CardTitle>
-              <div className="h-2 w-2 rounded-full bg-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statusCounts.diproses}</div>
-              <p className="text-xs text-muted-foreground">
-                Sedang dalam proses
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium">Disetujui</CardTitle>
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statusCounts.disetujui}</div>
-              <p className="text-xs text-muted-foreground">
-                Telah disetujui
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium">Ditolak</CardTitle>
-              <div className="h-2 w-2 rounded-full bg-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statusCounts.ditolak}</div>
-              <p className="text-xs text-muted-foreground">
-                Telah ditolak
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            setTabData(data);
+            setStatusCountsState({ total, diproses, disetujui, ditolak });
 
-        {/* Main Content */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle>Data Perizinan Pribadi</CardTitle>
-            <CardDescription>
-              Kelola semua jenis perizinan pribadi yang diajukan warga
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-5">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-5 w-full mb-8">
-                {personalPermitTypes.map((permit) => {
-                  const Icon = permitIcons[permit.key as keyof typeof permitIcons];
-                  const counts = getStatusCounts(permit.data);
-                  
-                  return (
-                    <TabsTrigger 
-                      key={permit.key} 
-                      value={permit.key}
-                      className="flex flex-col items-center gap-2 p-4 h-auto"
+            console.log(`Data loaded for ${tabKey} (format_id: ${formatId}):`, {
+                total,
+                dataCount: data.length,
+            });
+        } catch (error) {
+            console.error(`Failed to fetch data for ${tabKey}:`, error);
+            setTabData([]);
+            setStatusCountsState({ total: 0, diproses: 0, disetujui: 0, ditolak: 0 });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle delete action
+    const handleDelete = async (item: SuratItem) => {
+        setSelectedData(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!selectedData) return;
+
+        setIsDeleting(true);
+        try {
+            await axios.delete(`/api/surat/${selectedData.id}`);
+
+            // Refresh data after successful delete
+            await fetchData(activeTab);
+
+            setIsDeleteModalOpen(false);
+            setSelectedData(null);
+            deleteSuccess('Data perizinan');
+        } catch (error) {
+            console.error('Delete error:', error);
+            deleteError('Terjadi kesalahan saat menghapus data perizinan');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // Handle view action (placeholder)
+    const handleView = (item: SuratItem) => {
+        setSelectedData(item);
+        setIsDetailModalOpen(true);
+    };
+
+    // Handle edit action (placeholder)
+    const handleEdit = (item: SuratItem) => {
+        setSelectedData(item);
+        setIsEditModalOpen(true);
+    };
+
+    // Fetch data when active tab changes
+    useEffect(() => {
+        fetchData(activeTab);
+    }, [activeTab]);
+
+    // Define table columns
+    const columns = [
+        {
+            name: 'No. Surat',
+            selector: (row: SuratItem) => row.nomor_surat || '-',
+            sortable: true,
+            width: '150px',
+        },
+        {
+            name: 'Nama Pemohon',
+            selector: (row: SuratItem) => row.penduduk?.nama || '-',
+            sortable: true,
+            cell: (row: SuratItem) => (
+                <div className="py-2">
+                    <div className="font-medium">{row.penduduk?.nama || row.form?.nama || '-'}</div>
+                    {row.penduduk_id && <div className="text-xs text-muted-foreground">ID: {row.penduduk_id}</div>}
+                </div>
+            ),
+        },
+        {
+            name: 'Status',
+            selector: (row: SuratItem) => row.status,
+            sortable: true,
+            width: '150px',
+            cell: (row: SuratItem) => {
+                const [isEditing, setIsEditing] = useState(false);
+                const [currentStatus, setCurrentStatus] = useState<'diproses' | 'disetujui' | 'ditolak' | 'dicetak'>(row.status);
+                const [loading, setLoading] = useState(false);
+
+                const getVariantColor = (status: string) => {
+                    switch (status) {
+                        case 'diproses':
+                            return 'orange';
+                        case 'disetujui':
+                            return 'green';
+                        case 'ditolak':
+                            return 'red';
+                        case 'dicetak':
+                            return 'gray';
+                        default:
+                            return 'black';
+                    }
+                };
+
+                const updateStatus = async (newStatus: string) => {
+                    try {
+                        setLoading(true);
+                        const response = await fetch(`/api/surat/${row.id}/status`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Accept: 'application/json',
+                            },
+                            body: JSON.stringify({ status: newStatus }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Gagal memperbarui status');
+                        }
+
+                        const result = await response.json();
+                        setCurrentStatus((result.status || newStatus) as 'diproses' | 'disetujui' | 'ditolak' | 'dicetak');
+                    } catch (error) {
+                        alert('Gagal memperbarui status.');
+                        console.error(error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const newStatus = e.target.value;
+                    setCurrentStatus(newStatus as 'diproses' | 'disetujui' | 'ditolak' | 'dicetak');
+                    setIsEditing(false);
+                    await updateStatus(newStatus);
+                };
+
+                return isEditing ? (
+                    <select
+                        value={currentStatus}
+                        onChange={handleChange}
+                        onBlur={() => setIsEditing(false)}
+                        style={{ padding: '4px', borderRadius: '4px' }}
+                        autoFocus
                     >
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4" />
-                        <span className="text-xs font-medium">
-                          {permit.key === 'pengantar-skck' && 'SKCK'}
-                          {permit.key === 'keterangan-domisili' && 'DOMISILI'}
-                          {permit.key === 'izin-tinggal-pendatang' && 'PENDATANG'}
-                          {permit.key === 'izin-keluar-negeri' && 'LUAR NEGERI'}
-                          {permit.key === 'keterangan-tidak-bekerja' && 'TIDAK BEKERJA'}
-                        </span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {counts.total}
-                      </Badge>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-              
-              {personalPermitTypes.map((permit) => {
-                const tabData = getDataForTab(permit.key);
-                return (
-                  <TabsContent key={permit.key} value={permit.key} className="mt-2">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <h3 className="text-lg font-semibold">{permit.label}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Total {tabData.length} pengajuan
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <PersonalPermitTable
-                        type={permit.key as 'pengantar-skck' | 'keterangan-domisili' | 'izin-tinggal-pendatang' | 'izin-keluar-negeri' | 'keterangan-tidak-bekerja'}
-                        data={permit.data}
-                        searchPlaceholder={`Cari ${permit.label.toLowerCase()}...`}
-                        onView={handleView}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                      />
-                    </div>
-                  </TabsContent>
+                        {statusOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option.toUpperCase()}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <span
+                        onClick={() => !loading && setIsEditing(true)}
+                        style={{
+                            cursor: loading ? 'wait' : 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            backgroundColor: getVariantColor(currentStatus),
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            display: 'inline-block',
+                            opacity: loading ? 0.6 : 1,
+                        }}
+                        title={loading ? 'Sedang menyimpan...' : 'Klik untuk ubah status'}
+                    >
+                        {currentStatus.toUpperCase()}
+                    </span>
                 );
-              })}
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+            },
+        },
+        {
+            name: 'Tanggal',
+            selector: (row: SuratItem) => new Date(row.created_at).toLocaleDateString('id-ID'),
+            sortable: true,
+            width: '120px',
+        },
+        {
+            name: 'Aksi',
+            width: '150px',
+            cell: (row: SuratItem) => (
+                <div className="flex items-center gap-2">
+                    <button className="px-1 text-sm text-blue-500 hover:underline" onClick={() => handleView(row)} title="Lihat detail">
+                        Lihat
+                    </button>
+                    <button className="px-1 text-sm text-red-500 hover:underline" onClick={() => handleDelete(row)} title="Hapus data">
+                        Hapus
+                    </button>
+                </div>
+            ),
+        },
+    ];
 
-      {/* Detail Modal */}
-      <PersonalPermitDetailModal
-        data={selectedData}
-        type={activeTab as 'pengantar-skck' | 'keterangan-domisili' | 'izin-tinggal-pendatang' | 'izin-keluar-negeri' | 'keterangan-tidak-bekerja'}
-        open={isDetailModalOpen}
-        onOpenChange={setIsDetailModalOpen}
-      />
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Manajemen Perizinan Pribadi" />
 
-      {/* Edit Modal */}
-      <PersonalPermitEditModal
-        data={selectedData}
-        type={activeTab as 'pengantar-skck' | 'keterangan-domisili' | 'izin-tinggal-pendatang' | 'izin-keluar-negeri' | 'keterangan-tidak-bekerja'}
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        onSave={handleSaveEdit}
-      />
+            <div className="container mx-auto px-6 py-8">
+                <div className="mb-8 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Manajemen Perizinan Pribadi</h1>
+                        <p className="mt-1 text-muted-foreground">Kelola semua jenis perizinan pribadi dalam satu dashboard</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
+                            <ListFilter className="h-3.5 w-3.5" />
+                            <span>Perizinan Aktif</span>
+                        </Badge>
+                    </div>
+                </div>
+                {/* Statistics Cards */}
+                <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                            <CardTitle className="text-sm font-medium">Total Pengajuan</CardTitle>
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statusCountsState.total}</div>
+                            <p className="text-xs text-muted-foreground">Semua pengajuan perizinan</p>
+                        </CardContent>
+                    </Card>
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        open={isDeleteModalOpen}
-        onOpenChange={setIsDeleteModalOpen}
-        onConfirm={handleConfirmDelete}
-        title={getDeleteModalContent().title}
-        description={getDeleteModalContent().description}
-        isLoading={isDeleting}
-      />
-    </AppLayout>
-  );
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                            <CardTitle className="text-sm font-medium">Diproses</CardTitle>
+                            <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statusCountsState.diproses}</div>
+                            <p className="text-xs text-muted-foreground">Sedang dalam proses</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                            <CardTitle className="text-sm font-medium">Disetujui</CardTitle>
+                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statusCountsState.disetujui}</div>
+                            <p className="text-xs text-muted-foreground">Telah disetujui</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                            <CardTitle className="text-sm font-medium">Ditolak</CardTitle>
+                            <div className="h-2 w-2 rounded-full bg-red-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statusCountsState.ditolak}</div>
+                            <p className="text-xs text-muted-foreground">Telah ditolak</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Main Content */}
+                <Card className="shadow-sm">
+                    <CardHeader className="pb-4">
+                        <CardTitle>Data Perizinan Usaha</CardTitle>
+                        <CardDescription>Kelola semua jenis perizinan usaha yang diajukan warga</CardDescription>
+                    </CardHeader>
+                    <CardContent className="px-5">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <TabsList className="mb-8 grid w-full grid-cols-5">
+                                {permitTypes.map((permit) => {
+                                    const Icon = permit.icon;
+                                    const formatId = formatIdMap[permit.key];
+
+                                    return (
+                                        <TabsTrigger
+                                            key={permit.key}
+                                            value={permit.key}
+                                            className="flex h-auto flex-col items-center gap-2 p-4"
+                                            title={`Format ID: ${formatId}`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Icon className="h-4 w-4" />
+                                                <span className="text-xs font-medium">{permit.key.toUpperCase()}</span>
+                                            </div>
+                                            <Badge variant="secondary" className="text-xs">
+                                                {statusCountsState.total}
+                                            </Badge>
+                                        </TabsTrigger>
+                                    );
+                                })}
+                            </TabsList>
+
+                            <TabsContent value={activeTab} className="mt-2">
+                                <div className="space-y-6">
+                                    <div className="mb-2 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-semibold">{permitTypes.find((p) => p.key === activeTab)?.label}</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                Total {statusCountsState.total} pengajuan (Format ID: {formatIdMap[activeTab]})
+                                            </p>
+                                        </div>
+                                        {loading && (
+                                            <Badge variant="outline" className="animate-pulse">
+                                                Loading...
+                                            </Badge>
+                                        )}
+                                    </div>
+
+                                    <DataTable
+                                        data={tabData}
+                                        columns={columns}
+                                        pagination
+                                        highlightOnHover
+                                        progressPending={loading}
+                                        noDataComponent={
+                                            <div className="py-8 text-center text-muted-foreground">
+                                                {loading ? 'Memuat data...' : 'Tidak ada data tersedia'}
+                                            </div>
+                                        }
+                                        paginationComponentOptions={{
+                                            rowsPerPageText: 'Baris per halaman:',
+                                            rangeSeparatorText: 'dari',
+                                            noRowsPerPage: false,
+                                            selectAllRowsItem: false,
+                                        }}
+                                    />
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                open={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={handleConfirmDelete}
+                title="Hapus Data Perizinan"
+                description={`Apakah Anda yakin ingin menghapus data perizinan "${selectedData?.form?.nama_usaha || selectedData?.form?.nama || 'ini'}"? Tindakan ini tidak dapat dibatalkan.`}
+                isLoading={isDeleting}
+            />
+        </AppLayout>
+    );
 }
